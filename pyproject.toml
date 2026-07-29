@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robjy"
+version = "0.1.0"
+description = "上海第九人民医院微信公众号（齐脉 H5）门诊预约辅助工具"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "playwright>=1.40.0",
+  "PyYAML>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[project.scripts]
+robjy-grab = "robjy.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

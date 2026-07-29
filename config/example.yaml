@@ -1,0 +1,59 @@
+# 复制为 config/local.yaml 后按需修改；勿提交含个人隐私的本地配置。
+
+site:
+  # 九院齐脉 H5 入口（登录后请用稳定菜单入口；OAuth code 一次性，勿长期依赖）
+  entry_url: "https://h5.shqmxx.com/Resource.aspx?CustomerId=94&Pri=QM.CSFP.94.DIS.InfoLayout-MenuIndex&UiServiceId=gh_79eafca4e31a&UItype=wx&IsMenu=1&Version=1.1"
+  customer_id: "94"
+  ui_service_id: "gh_79eafca4e31a"
+
+session:
+  # Playwright storage_state 路径（登录后导出）
+  state_path: ".data/storage_state.json"
+  # 有头浏览器完成微信授权；无头复用会话时建议 headless: true
+  headless: false
+  # 登录态探测超时（秒）
+  auth_timeout_sec: 30
+
+booking:
+  # 左侧大类（可选）；为空则直接在右侧/全局按科室名匹配
+  department_category: "口腔科"
+  # 目标科室（子科室）
+  department: "儿童口腔科"
+  # 就诊人姓名（确认页匹配）
+  patient_name: ""
+  # 院区优先级
+  campus_priority:
+    - "南部院区"
+    - "高科园区"
+  # 医师职称优先级
+  title_priority:
+    - "主任医师"
+    - "副主任医师"
+  # 科室匹配：exact | contains
+  department_match: "contains"
+  # 最终提交前是否要求终端二次确认
+  confirm_submit: true
+  # 单步默认超时（毫秒）
+  step_timeout_ms: 15000
+
+scheduler:
+  timezone: "Asia/Shanghai"
+  release_time: "07:30:00"
+  # 放号前热身秒数（打开首页、过须知、进科室）
+  warmup_lead_sec: 120
+  # 放号后轮询窗口秒数
+  poll_window_sec: 180
+  # 最小轮询间隔（秒）
+  poll_interval_sec: 0.5
+  # 最大尝试次数（与窗口双条件）
+  max_attempts: 240
+
+runtime:
+  artifact_dir: ".data/artifacts"
+  # 验证码截图目录
+  captcha_dir: ".data/captcha"
+  # User-Agent：尽量贴近微信内置浏览器
+  user_agent: "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36 MicroMessenger/8.0.44"
+  viewport:
+    width: 390
+    height: 844
