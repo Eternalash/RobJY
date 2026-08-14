@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+
+# 本地配置与会话（含隐私）
+config/local.yaml
+.data/
+*.storage_state.json
+storage_state.json
+
+# 运行产物
+.data/artifacts/
+.data/captcha/
+*.png
+*.jpg
+!docs/**/*.png
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.log
