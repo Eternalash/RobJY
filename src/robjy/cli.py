@@ -10,6 +10,7 @@ from robjy.flow.booking import BookingFlow
 from robjy.logging_utils import setup_logging
 from robjy.scheduler.release import ReleaseScheduler
 from robjy.session.browser import BrowserSession, SessionExpiredError
+from robjy.session.cookies import import_cookie_text
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,30 @@ def _build_parser() -> argparse.ArgumentParser:
         action=argparse.BooleanOptionalAction,
         default=None,
         help="覆盖配置中的 headless",
+    )
+
+    imp = sub.add_parser(
+        "import-cookie",
+        help="从 Charles Cookie 头/文本生成 Playwright storage_state",
+    )
+    imp.add_argument(
+        "--cookie",
+        help="Cookie 原文（推荐 Headers 里的 Cookie 整行）；也可用 --cookie-file",
+    )
+    imp.add_argument(
+        "--cookie-file",
+        help="从文件读取 Cookie 原文（避免把密钥写进 shell history）",
+    )
+    imp.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="输出路径（默认用配置里的 session.state_path）",
+    )
+    imp.add_argument(
+        "--domain",
+        default=".shqmxx.com",
+        help="Cookie domain（默认 .shqmxx.com）",
     )
 
     return p
@@ -117,6 +142,28 @@ def cmd_schedule(args: argparse.Namespace) -> int:
         return 0 if outcome.result.ok else 2
 
 
+def cmd_import_cookie(args: argparse.Namespace) -> int:
+    raw = args.cookie
+    if args.cookie_file:
+        raw = Path(args.cookie_file).read_text(encoding="utf-8")
+    if not raw or not str(raw).strip():
+        print("请提供 --cookie 或 --cookie-file", file=sys.stderr)
+        return 1
+
+    output = args.output
+    if output is None:
+        cfg_path = Path(args.config)
+        if cfg_path.exists():
+            output = str(load_config(cfg_path).state_path)
+        else:
+            output = ".data/storage_state.json"
+
+    path = import_cookie_text(str(raw), output, domain=args.domain)
+    print(f"已写入 storage_state: {path}")
+    print("下一步: python scripts/grab.py once -c config/local.yaml --stop-before-captcha --no-headless")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -127,6 +174,8 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_once(args)
         if args.command == "schedule":
             return cmd_schedule(args)
+        if args.command == "import-cookie":
+            return cmd_import_cookie(args)
         parser.error(f"未知命令: {args.command}")
         return 1
     except SessionExpiredError as exc:
@@ -135,6 +184,9 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"文件错误: {exc}", file=sys.stderr)
         return 4
+    except ValueError as exc:
+        print(f"参数错误: {exc}", file=sys.stderr)
+        return 1
     except KeyboardInterrupt:
         print("已中断", file=sys.stderr)
         return 130

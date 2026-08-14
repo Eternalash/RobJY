@@ -32,6 +32,11 @@ cp config/example.yaml config/local.yaml
 # 1) 首次登录：弹出浏览器，在微信授权完成后自动保存会话
 python scripts/grab.py login -c config/local.yaml
 
+# 1b) 或从 Charles 导入 Cookie（推荐复制 Headers 里的 Cookie 整行到文件）
+#     注意：Cookies 面板里的 \d / ^Y 是显示转义，优先用原始 Header
+printf '%s' '94_e31aSessionEntity=...; 94_e31aParamsEntity=...' > /tmp/jy.cookie
+python scripts/grab.py import-cookie --cookie-file /tmp/jy.cookie -c config/local.yaml
+
 # 2) 立即跑一遍流程（调试；建议先加 --stop-before-captcha）
 python scripts/grab.py once -c config/local.yaml --stop-before-captcha
 
