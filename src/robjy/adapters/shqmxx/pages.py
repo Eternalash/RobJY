@@ -57,8 +57,18 @@ class ShqmxxAdapter:
     def open_outpatient_appointment(self) -> None:
         logger.info("进入门诊预约")
         self.click_text(sel.OUTPATIENT_APPOINTMENT, exact=True)
-        # 可能直接到须知或院区列表
-        self.page.wait_for_timeout(800)
+        self.page.wait_for_timeout(1500)
+        url = self.page.url
+        if "open.weixin.qq.com" in url:
+            raise RuntimeError(
+                "点击门诊预约后跳转到微信 OAuth（open.weixin.qq.com）。"
+                "当前 h5.shqmxx.com 会话不足以进入预约子系统。"
+                "请在微信内打开至院区列表页，用 Charles 再抓 book.9hospital.com.cn "
+                "（及 h5.shqmxx.com）的 Cookie 后重新 import-cookie。"
+            )
+        if "book.9hospital.com.cn" in url:
+            logger.info("已进入预约子系统: %s", url)
+        self.page.wait_for_timeout(500)
 
     def accept_notice(self) -> None:
         body = self.visible_texts()

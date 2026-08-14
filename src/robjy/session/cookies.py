@@ -15,28 +15,35 @@ def parse_cookie_header(raw: str) -> list[dict]:
 
     支持：
     - 标准头：`a=1; b=2`
-    - Charles Cookies 面板粘贴：每行 `name=value`（可带前缀 cookie\\t）
-    - 值中可含 `=`（只按第一个 `=` 分割 name/value）
+    - Charles Cookies 面板粘贴：`name\\tvalue`（value 常自带 `name=` 前缀，须原样保留）
+    - 每行 `name=value`（可带前缀 cookie\\t）
+    - 值中可含 `=`（只按第一个 `=` 分割 name/value）；`name\\tname=...` 时 value 取制表符后全文
     """
     text = raw.strip()
     if not text:
         raise ValueError("Cookie 内容为空")
 
-    # 统一成分号分隔
     lines: list[str] = []
     for line in text.splitlines():
         line = line.strip()
         if not line:
             continue
-        # Charles 表格粘贴可能带 "cookie\t"
         if line.lower().startswith("cookie") and ("\t" in line or line[6:7] in {" ", "="}):
-            # cookie\tname=value 或 cookie name=value
             line = re.sub(r"(?i)^cookie[\t ]+", "", line)
         lines.append(line)
 
+    # Charles 表格：name \t value（value 可能是 name=payload）
+    tab_pairs: list[tuple[str, str]] = []
+    for line in lines:
+        if "\t" in line:
+            name, value = line.split("\t", 1)
+            name, value = name.strip(), value.strip()
+            if name and value:
+                tab_pairs.append((name, value))
+    if tab_pairs and len(tab_pairs) == len(lines):
+        return [_playwright_cookie(n, v) for n, v in tab_pairs]
+
     joined = " ".join(lines)
-    # 若是多行 name=value 且没有分号，用换行意合成；已 join 成空格
-    # 优先按 `;` 拆；若只有一段且含换行风格，再按空白中的 name= 模式拆
     parts = [p.strip() for p in joined.split(";") if p.strip()]
     if len(parts) == 1 and len(lines) > 1:
         parts = lines

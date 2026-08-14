@@ -13,17 +13,17 @@ def test_parse_standard_header():
     assert cookies[0]["domain"] == ".shqmxx.com"
 
 
-def test_parse_charles_cookie_table_lines():
+def test_parse_charles_name_tab_value_keeps_prefixed_value():
     raw = (
-        "cookie\t94_e31aSessionEntity=payloadA\n"
-        "cookie\t94_e31aParamsEntity=payloadB\n"
+        "94_e31aSessionEntity\t94_e31aSessionEntity=SWSHKC/Ps\\d^Y^8abc=\n"
+        "94_e31aParamsEntity\t94_e31aParamsEntity=iWUHyCaP1\\t^r^sxyz\n"
     )
     cookies = parse_cookie_header(raw)
-    assert [c["name"] for c in cookies] == [
-        "94_e31aSessionEntity",
-        "94_e31aParamsEntity",
-    ]
-    assert cookies[0]["value"] == "payloadA"
+    assert cookies[0]["name"] == "94_e31aSessionEntity"
+    assert cookies[0]["value"].startswith("94_e31aSessionEntity=")
+    assert r"\d" in cookies[0]["value"] or "\\d" in cookies[0]["value"]
+    assert cookies[1]["name"] == "94_e31aParamsEntity"
+    assert cookies[1]["value"].startswith("94_e31aParamsEntity=")
 
 
 def test_import_cookie_writes_storage_state(tmp_path: Path):

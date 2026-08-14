@@ -33,13 +33,21 @@ class BrowserSession:
         self.close()
 
     def close(self) -> None:
-        for closer in (self._context, self._browser, self._playwright):
-            if closer is None:
-                continue
+        if self._context is not None:
             try:
-                closer.close()
-            except Exception:  # noqa: BLE001 - 关闭阶段吞掉
-                logger.debug("关闭资源时忽略异常", exc_info=True)
+                self._context.close()
+            except Exception:  # noqa: BLE001
+                logger.debug("关闭 context 时忽略异常", exc_info=True)
+        if self._browser is not None:
+            try:
+                self._browser.close()
+            except Exception:  # noqa: BLE001
+                logger.debug("关闭 browser 时忽略异常", exc_info=True)
+        if self._playwright is not None:
+            try:
+                self._playwright.stop()
+            except Exception:  # noqa: BLE001
+                logger.debug("停止 playwright 时忽略异常", exc_info=True)
         self._context = None
         self._browser = None
         self._playwright = None
